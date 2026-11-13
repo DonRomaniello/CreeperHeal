@@ -1,15 +1,12 @@
 package com.nitnelave.CreeperHeal.block;
 
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.material.Door;
 import org.bukkit.block.data.Bisected;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Bisected block implementation of the CreeperBlock.
+ * Two-block-high blocks: doors, tall flowers, tall grass...
  *
  * @author nitnelave
  *
@@ -17,37 +14,22 @@ import java.util.List;
 class CreeperBisected extends CreeperMultiblock
 {
 
-    /*
-     * Constructor.
-     */
     CreeperBisected(BlockState blockState, Bisected bisected)
     {
         super(blockState);
-
-        if (bisected.getHalf() == Bisected.Half.TOP)
+        boolean top = bisected.getHalf() == Bisected.Half.TOP;
+        Block other = blockState.getBlock().getRelative(top ? BlockFace.DOWN : BlockFace.UP);
+        if (other.getType() != blockState.getType()
+            || ((Bisected) other.getBlockData()).getHalf() == bisected.getHalf())
+            return; // A lone half, nothing else to take care of.
+        if (top)
         {
-            BlockState bottom = blockState.getBlock().getRelative(BlockFace.DOWN).getState();
-            this.blockState = bottom;
-            this.blockData = bottom.getBlockData();
+            // The bottom half is the main block, it is the one that needs support.
+            this.blockState = other.getState();
             addDependent(blockState);
         }
         else
-        {
-            BlockState top = blockState.getBlock().getRelative(BlockFace.UP).getState();
-            addDependent(top);
-
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.nitnelave.CreeperHeal.block.CreeperBlock#getNeighbors()
-     */
-    @Override
-    public List<NeighborBlock> getDependentNeighbors()
-    {
-        return new ArrayList<NeighborBlock>();
+            addDependent(other.getState());
     }
 
 }

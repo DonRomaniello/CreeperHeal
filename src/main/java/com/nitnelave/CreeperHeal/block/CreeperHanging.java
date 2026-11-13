@@ -4,95 +4,119 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Hanging;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Painting;
 
 /**
- * Represents a hanging, i.e. either a painting or an ItemFrame.
- * 
+ * Represents a hanging (item frame or painting).
+ *
  * @author nitnelave
- * 
+ *
  */
 public abstract class CreeperHanging implements Replaceable
 {
     protected final Hanging hanging;
     protected final Location location;
 
-    /**
-     * Constructor. The date is the time the hanging was destroyed, and fire is
-     * whether the hanging was destroyed by fire, or an explosion.
-     * 
-     * @param hanging
-     *            The hanging destroyed.
-     */
     protected CreeperHanging(Hanging hanging)
     {
         this.hanging = hanging;
-        location = computeLocation();
+        location = hanging.getLocation();
     }
 
     /**
-     * Create a CreeperHanging of the right subclass. Factory method.
-     * 
+     * Create a new hanging from an in-game hanging.
+     *
      * @param hanging
-     *            The hanging to be represented by the Object.
-     * @return An instance of the right subclass of CreeperHanging.
+     *            The hanging to be represented.
+     * @return The newly created hanging, or null if it cannot be recorded.
      */
     public static CreeperHanging newHanging(Hanging hanging)
     {
-        if (hanging.getType() == EntityType.PAINTING)
+        if (hanging instanceof Painting)
             return new CreeperPainting((Painting) hanging);
-        if (hanging.getType() == EntityType.ITEM_FRAME)
+        if (hanging instanceof ItemFrame)
             return new CreeperItemFrame((ItemFrame) hanging);
         return null;
     }
 
-    /**
-     * Get the location of the painting, so that it is right in front of the
-     * block it should be attached to.
-     * 
-     * @return The location of the painting.
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.nitnelave.CreeperHeal.block.Replaceable#replace(boolean)
      */
-    protected abstract Location computeLocation();
+    @Override
+    public boolean replace(boolean shouldDrop)
+    {
+        if (shouldDrop || isSupported())
+            try
+            {
+                spawn();
+                return true;
+            } catch (IllegalArgumentException e)
+            {
+                // Could not place the hanging.
+            }
+        if (shouldDrop)
+            drop(true);
+        return shouldDrop;
+    }
+
+    /*
+     * Put the hanging back in the world. Throws an IllegalArgumentException
+     * if there is no room for it.
+     */
+    protected abstract void spawn();
+
+    /*
+     * Copy the properties common to every entity.
+     */
+    protected void copyProperties(Hanging to)
+    {
+        to.customName(hanging.customName());
+        to.setCustomNameVisible(hanging.isCustomNameVisible());
+        to.setInvulnerable(hanging.isInvulnerable());
+        to.setSilent(hanging.isSilent());
+        to.setGlowing(hanging.isGlowing());
+    }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.nitnelave.CreeperHeal.block.Replaceable#getWorld()
      */
     @Override
     public World getWorld()
     {
-        return hanging.getWorld();
+        return location.getWorld();
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.nitnelave.CreeperHeal.block.Replaceable#getLocation()
      */
     @Override
     public Location getLocation()
     {
-        return location;
+        return location.clone();
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.nitnelave.CreeperHeal.block.Replaceable#getBlock()
      */
     @Override
     public Block getBlock()
     {
-        return hanging.getLocation().getBlock();
+        return location.getBlock();
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.nitnelave.CreeperHeal.block.Replaceable#getAttachingFace()
      */
     @Override
@@ -103,7 +127,7 @@ public abstract class CreeperHanging implements Replaceable
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.nitnelave.CreeperHeal.block.Replaceable#isDependent()
      */
     @Override
@@ -114,7 +138,7 @@ public abstract class CreeperHanging implements Replaceable
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.nitnelave.CreeperHeal.block.Replaceable#remove()
      */
     @Override
@@ -122,4 +146,5 @@ public abstract class CreeperHanging implements Replaceable
     {
         hanging.remove();
     }
+
 }

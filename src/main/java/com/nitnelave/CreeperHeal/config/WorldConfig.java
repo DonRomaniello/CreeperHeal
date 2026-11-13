@@ -248,7 +248,7 @@ public class WorldConfig
                 {
                 case CREEPER:
                     return getBool(WCfgVal.CREEPERS) && isAbove(entity.getLocation());
-                case PRIMED_TNT:
+                case TNT:
                     return getBool(WCfgVal.TNT) && isAbove(entity.getLocation());
                 case FIREBALL:
                     return getBool(WCfgVal.GHAST) && isAbove(entity.getLocation());
@@ -257,9 +257,9 @@ public class WorldConfig
                 case WITHER:
                 case WITHER_SKULL:
                     return getBool(WCfgVal.WITHER);
-                case MINECART_TNT:
+                case TNT_MINECART:
                     return getBool(WCfgVal.MINECART_TNT);
-                case ENDER_CRYSTAL:
+                case END_CRYSTAL:
                     return getBool(WCfgVal.ENDER_CRYSTAL);
                 default:
                     return getBool(WCfgVal.CUSTOM);
@@ -293,7 +293,7 @@ public class WorldConfig
     public boolean isProtected(Block block)
     {
         return protectList.getValue().contains(new BlockId(block))
-               || (block.getState() instanceof InventoryHolder
+               || (block.getState(false) instanceof InventoryHolder
                    && CreeperConfig.getBool(CfgVal.REPLACE_PROTECTED_CHESTS) && PluginHandler
                                .isProtected(block));
     }
@@ -434,28 +434,21 @@ public class WorldConfig
             return replaceBlackList.getValue().contains(id);
     }
 
-    public void getReplacement(BlockState state)
+public void getReplacement(BlockState state)
     {
-        String key = state.getType().toString() + ';' + state.getRawData();
-        String s = replacement.getString(key + ".type");
-        if (s == null)
-        {
-            key = state.getType().toString();
-            s = replacement.getString(key + ".type");
-        }
+        // replace.yml: either "STONE: COBBLESTONE" or "STONE: {type: COBBLESTONE}"
+        String key = state.getType().toString();
+        String s = replacement.isConfigurationSection(key) ? replacement.getString(key + ".type")
+                                                          : replacement.getString(key);
         if (s == null)
             return;
-        Material material = Material.getMaterial(s);
-        if (material == null)
+        Material material = Material.matchMaterial(s);
+        if (material == null || !material.isBlock())
         {
             CreeperLog.warning("Invalid block type for " + key + " in world " + state.getWorld().getName());
             return;
         }
-        int data = replacement.getInt(key + ".data", -1);
         state.setType(material);
-        if (data != -1)
-            state.setRawData((byte) data);
-        else
-            state.setRawData((byte) 0);
     }
+
 }

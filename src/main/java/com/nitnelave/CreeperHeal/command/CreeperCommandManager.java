@@ -13,11 +13,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.Field;
 
 /**
  * The command manager for CreeperHeal.
@@ -35,25 +33,10 @@ public class CreeperCommandManager implements CommandExecutor
      */
     public static void registerCommands()
     {
-        CommandMap commandMap = null;
-        try
-        {
-            Field field = Bukkit.getServer().getPluginManager().getClass().getDeclaredField("commandMap");
-            field.setAccessible(true);
-            commandMap = (CommandMap) (field.get(Bukkit.getServer().getPluginManager()));
-        } catch (NoSuchFieldException e)
-        {
-            e.printStackTrace();
-        } catch (IllegalAccessException e)
-        {
-            e.printStackTrace();
-        }
-
         String[] aliases = { "CreeperHeal", CreeperConfig.getAlias() };
         CreeperCommand com = new CreeperCommand(aliases, "", "", new CreeperCommandManager());
 
-        if (commandMap != null)
-            commandMap.register("_", com);
+        Bukkit.getCommandMap().register("creeperheal", com);
 
     }
 

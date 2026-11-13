@@ -30,7 +30,7 @@ public class LeavesListener implements Listener
     public void onBlockPhysics(BlockPhysicsEvent event)
     {
         Block b = event.getBlock();
-        if (b.getType() == Material.VINE
+        if ((b.getType() == Material.VINE || b.getType() == Material.GLOW_LICHEN)
             && (ExplodedBlockManager.isNextToExplosion(b.getLocation()) || BurntBlockManager.isNextToFire(b.getLocation())))
             event.setCancelled(true);
     }

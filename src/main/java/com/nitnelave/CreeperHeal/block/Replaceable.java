@@ -82,6 +82,17 @@ public interface Replaceable
     boolean drop(boolean forced);
 
     /**
+     * Check whether the block can be put back right now without popping off
+     * (e.g. the wall a torch is attached to is back).
+     *
+     * @return Whether the block has the support it needs.
+     */
+    default boolean isSupported()
+    {
+        return !getBlock().getRelative(getAttachingFace()).isEmpty();
+    }
+
+    /**
      * Remove the block from the world.
      */
     void remove();

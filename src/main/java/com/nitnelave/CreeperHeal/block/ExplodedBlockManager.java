@@ -306,7 +306,9 @@ public class ExplodedBlockManager
      */
     public static void recordArmorStand(ArmorStand stand)
     {
-        brokenEntityList.add(new CreeperArmorStand(stand));
+        CreeperArmorStand s = CreeperArmorStand.newArmorStand(stand);
+        if (s != null)
+            brokenEntityList.add(s);
     }
 
     private static void scheduleTask()

@@ -9,98 +9,66 @@ import org.bukkit.entity.Painting;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Painting implementation of the CreeperHanging. Represents a painting.
- * 
+ * Painting implementation of the CreeperHanging.
+ *
  * @author nitnelave
- * 
+ *
  */
 class CreeperPainting extends CreeperHanging
 {
 
-    /**
-     * Constructor.
-     * 
-     * @param painting
-     *            The painting represented.
-     */
+    private final Location anchor;
+
+    private final Art art;
+
     protected CreeperPainting(Painting painting)
     {
         super(painting);
+        art = painting.getArt();
+        anchor = computeAnchor(painting);
     }
 
     /*
-     * (non-Javadoc)
-     * 
-     * @see com.nitnelave.CreeperHeal.block.CreeperHanging#computeLocation()
+     * A painting sits at the center of its canvas, but is placed from the
+     * block it is anchored to. For even sizes, the center is half a block
+     * away from the anchor (to the left when facing the wall, and up).
      */
-    @Override
-    protected Location computeLocation()
+    private static Location computeAnchor(Painting painting)
     {
-        BlockFace face = hanging.getAttachedFace();
-        Location loc = hanging.getLocation().getBlock().getRelative(face).getLocation();
-        Art art = ((Painting) hanging).getArt();
-
-        if (art.getBlockHeight() + art.getBlockWidth() < 5)
+        Art art = painting.getArt();
+        double side = art.getBlockWidth() % 2 == 0 ? 0.5 : 0, up = art.getBlockHeight() % 2 == 0 ? 0.5 : 0;
+        BlockFace left;
+        switch (painting.getFacing())
         {
-            int i = 0, j = 0, k = art.getBlockWidth() - 1;
-            switch (face)
-            {
-            case EAST:
-                j = -k;
-                break;
-            case NORTH:
-                i = -k;
-            default:
-                break;
-            }
-            loc.add(i, 1 - art.getBlockHeight(), j);
+        case NORTH:
+            left = BlockFace.WEST;
+            break;
+        case WEST:
+            left = BlockFace.SOUTH;
+            break;
+        case SOUTH:
+            left = BlockFace.EAST;
+            break;
+        default:
+            left = BlockFace.NORTH;
         }
-        else
-        {
+        return painting.getLocation().subtract(left.getModX() * side, up, left.getModZ() * side);
+    }
 
-            if (art.getBlockHeight() != 3)
-                loc.add(0, -1, 0);
-            switch (face)
-            {
-            case EAST:
-                loc.add(0, 0, -1);
-                break;
-            case NORTH:
-                loc.add(-1, 0, 0);
-            default:
-                break;
-            }
-
-        }
-        return loc.getBlock().getRelative(face.getOppositeFace()).getLocation();
+    @Override
+    protected void spawn()
+    {
+        getWorld().spawn(anchor, Painting.class, painting -> {
+            painting.setFacingDirection(hanging.getFacing(), true);
+            painting.setArt(art, true);
+            copyProperties(painting);
+        });
     }
 
     /*
      * (non-Javadoc)
-     * 
-     * @see com.nitnelave.CreeperHeal.block.Replaceable#replace(boolean)
-     */
-    @Override
-    public boolean replace(boolean shouldDrop)
-    {
-
-        try
-        {
-            Painting p = getWorld().spawn(location, Painting.class);
-            p.teleport(location);
-            p.setFacingDirection(hanging.getFacing(), true);
-            p.setArt(((Painting) hanging).getArt(), true);
-        } catch (IllegalArgumentException e) // Could not place the painting
-        {
-            return false;
-        }
-        return true;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.nitnelave.CreeperHeal.block.Replaceable#drop()
+     *
+     * @see com.nitnelave.CreeperHeal.block.Replaceable#drop(boolean)
      */
     @Override
     public boolean drop(boolean forced)
@@ -115,8 +83,8 @@ class CreeperPainting extends CreeperHanging
 
     /*
      * (non-Javadoc)
-     * 
-     * @see com.nitnelave.CreeperHeal.block.Replaceable#getTypeId()
+     *
+     * @see com.nitnelave.CreeperHeal.block.Replaceable#getType()
      */
     @Override
     public Material getType()

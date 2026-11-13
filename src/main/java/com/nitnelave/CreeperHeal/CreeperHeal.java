@@ -7,13 +7,11 @@ import com.nitnelave.CreeperHeal.config.CfgVal;
 import com.nitnelave.CreeperHeal.config.CreeperConfig;
 import com.nitnelave.CreeperHeal.listeners.*;
 import com.nitnelave.CreeperHeal.utils.CreeperLog;
-import com.nitnelave.CreeperHeal.utils.MetricsLite;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * The main class of the CreeperHeal plugin. The main aim of this plugin is to
@@ -45,14 +43,6 @@ public class CreeperHeal extends JavaPlugin
         instance = this;
         CreeperCommandManager.registerCommands();
         registerEvents();
-        try
-        {
-            MetricsLite metrics = new MetricsLite(this);
-            metrics.start();
-        } catch (IOException e)
-        {
-            CreeperLog.warning("Could not submit data to MC-Stats");
-        }
     }
 
     /**
@@ -106,9 +96,6 @@ public class CreeperHeal extends JavaPlugin
 
         if (CreeperConfig.getBool(CfgVal.PREVENT_BLOCK_FALL))
             pm.registerEvents(new BlockFallListener(), this);
-
-        if (CreeperConfig.getBool(CfgVal.RAIL_REPLACEMENT))
-            pm.registerEvents(new RailsUpdateListener(), this);
 
         if (CreeperConfig.getInt(CfgVal.WAIT_BEFORE_BURN_AGAIN) > 0)
             pm.registerEvents(new BlockIgniteListener(), this);

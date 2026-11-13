@@ -1,114 +1,77 @@
 package com.nitnelave.CreeperHeal.block;
 
-import com.nitnelave.CreeperHeal.utils.CreeperUtils;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Rail;
 
-import java.util.Set;
-
 /**
- * Rail implementation of CreeperBlock.
+ * Rail implementation of CreeperBlock. Rails are put back without notifying
+ * the neighbors, so that the track keeps the exact shape it had.
  *
  * @author nitnelave
  *
  */
 class CreeperRail extends CreeperBlock
 {
-    private static final BlockFace[] FACES = { BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH,
-                                              BlockFace.SOUTH };
-    private static final BlockFace[] UP_DOWN = { BlockFace.DOWN, BlockFace.SELF, BlockFace.UP };
-
-    public static final Set<Material> RAIL_TYPES =
-            CreeperUtils.createFinalHashSet(Material.RAIL,
-                                            Material.ACTIVATOR_RAIL,
-                                            Material.DETECTOR_RAIL,
-                                            Material.POWERED_RAIL);
 
     private final Rail data;
 
-    /*
-     * Constructor.
-     */
     CreeperRail(BlockState blockState)
     {
         super(blockState);
-        data = (Rail)blockState.getBlockData();
+        data = (Rail) blockState.getBlockData();
     }
 
     /*
-     * (non-Javadoc)
-     *
-     * @see com.nitnelave.CreeperHeal.block.CreeperBlock#update()
+     * Get the direction of the block an ascending rail is leaning on, or null
+     * if the rail is flat.
      */
+    static BlockFace getSlope(Rail rail)
+    {
+        switch (rail.getShape())
+        {
+        case ASCENDING_EAST:
+            return BlockFace.EAST;
+        case ASCENDING_WEST:
+            return BlockFace.WEST;
+        case ASCENDING_NORTH:
+            return BlockFace.NORTH;
+        case ASCENDING_SOUTH:
+            return BlockFace.SOUTH;
+        default:
+            return null;
+        }
+    }
+
     @Override
     public void update()
     {
-
-        Rail[][] railData = new Rail[3][4];
-        Block block = getBlock();
-        for (int i = 0; i < 3; i++)
-        {
-            Block upBlock = block.getRelative(UP_DOWN[i]);
-            for (int j = 0; j < 4; j++)
-            {
-                Block tmpBlock = upBlock.getRelative(FACES[j]);
-                if (RAIL_TYPES.contains(tmpBlock.getType()))
-                    railData[i][j] = (Rail)(tmpBlock.getState().getBlockData());
-            }
-        }
-        super.update();
-        for (int i = 0; i < 3; i++)
-        {
-            Block upBlock = block.getRelative(UP_DOWN[i]);
-            for (int j = 0; j < 4; j++)
-            {
-                Block tmpBlock = upBlock.getRelative(FACES[j]);
-                if (RAIL_TYPES.contains(tmpBlock.getType()))
-                    tmpBlock.getState().setBlockData(railData[i][j]);
-            }
-        }
+        getLocation().getChunk().load();
+        blockState.update(true, false);
+        playSound();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.nitnelave.CreeperHeal.block.CreeperBlock#getAttachingFace()
-     */
     @Override
     public BlockFace getAttachingFace()
     {
-      switch (data.getShape()) {
-        case ASCENDING_EAST:
-          return BlockFace.EAST;
-        case ASCENDING_WEST:
-          return BlockFace.WEST;
-        case ASCENDING_NORTH:
-          return BlockFace.NORTH;
-        case ASCENDING_SOUTH:
-          return BlockFace.SOUTH;
-        default:
-          return BlockFace.DOWN;
-      }
+        BlockFace slope = getSlope(data);
+        return slope == null ? BlockFace.DOWN : slope;
+    }
+
+    @Override
+    public boolean isSupported()
+    {
+        BlockFace slope = getSlope(data);
+        return super.isSupported() && (slope == null || !isEmpty(getBlock().getRelative(slope)));
     }
 
     /**
-     * Checks if the rail is ascending.
+     * Get whether the rail is ascending.
      *
-     * @return True, if it is ascending
+     * @return Whether the rail is ascending.
      */
     public boolean isAscending()
     {
-      switch (data.getShape()) {
-        case ASCENDING_EAST:
-        case ASCENDING_WEST:
-        case ASCENDING_NORTH:
-        case ASCENDING_SOUTH:
-          return true;
-        default:
-          return false;
-      }
+        return getSlope(data) != null;
     }
 }

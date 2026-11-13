@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 
 import java.util.*;
 
@@ -146,16 +147,23 @@ public abstract class BurntBlockManager
      * @param block
      *            The block to be recorded.
      */
-    public static void recordBurntBlock(Block block)
+public static void recordBurntBlock(Block block)
     {
         CreeperBlock b = CreeperBlock.newBlock(block.getState());
         if (b == null)
             return;
-
-        for (NeighborBlock neighbor : b.getDependentNeighbors())
-            if (neighbor.isNeighbor())
-                recordBurntBlock(new CreeperBurntBlock(new Date(new Date().getTime() + 100), neighbor.getBlock().getState()));
+        List<Block> parts = b.getParts();
         recordBurntBlock(new CreeperBurntBlock(new Date(), b));
+        // Record whatever was hanging onto the block before it pops off.
+        for (Block part : parts)
+            for (BlockFace face : CreeperBlock.CARDINALS)
+            {
+                Block neighbor = part.getRelative(face);
+                if (!neighbor.isEmpty() && !CreeperBlock.wouldSurvive(neighbor))
+                    recordBurntBlock(neighbor);
+            }
+        for (Block part : parts)
+            CreeperBlock.notifyRemoved(part);
     }
 
     /**

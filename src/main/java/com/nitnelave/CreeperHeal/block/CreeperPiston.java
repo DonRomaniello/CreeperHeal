@@ -1,14 +1,16 @@
 package com.nitnelave.CreeperHeal.block;
 
-import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Piston;
 import org.bukkit.block.data.type.PistonHead;
 
+import java.util.List;
+
 /**
- * Piston implementation of CreeperBlock.
+ * Piston implementation of the CreeperBlock. The piston always comes back
+ * retracted, and the redstone extends it again if needed.
  *
  * @author nitnelave
  *
@@ -16,42 +18,49 @@ import org.bukkit.block.data.type.PistonHead;
 class CreeperPiston extends CreeperBlock
 {
 
-    private final Piston pistonData;
     /*
-     * Constructor.
+     * The block of the extended arm, if any.
      */
+    private Block head = null;
+
     CreeperPiston(BlockState blockState)
     {
         super(blockState);
         Block block = blockState.getBlock();
-        if (blockState.getType().equals(Material.PISTON_HEAD))
-            block = block.getRelative(((PistonHead)blockData).getFacing().getOppositeFace());
-        this.blockState = block.getState();
-        blockData = block.getState().getBlockData();
-        pistonData = (Piston) blockData.clone();
-        pistonData.setExtended(false);
-        this.blockState.setBlockData(pistonData);
-    }
-
-    private boolean isExtended() {
-      return ((Piston)blockData).isExtended();
+        BlockData data = blockState.getBlockData();
+        if (data instanceof PistonHead)
+        {
+            Block base = block.getRelative(((PistonHead) data).getFacing().getOppositeFace());
+            if (!(base.getBlockData() instanceof Piston))
+                return; // A lone piston head, treat it as a regular block.
+            head = block;
+            this.blockState = base.getState();
+        }
+        Piston piston = (Piston) this.blockState.getBlockData();
+        if (piston.isExtended())
+        {
+            Block arm = this.blockState.getBlock().getRelative(piston.getFacing());
+            if (arm.getBlockData() instanceof PistonHead)
+                head = arm;
+            piston.setExtended(false);
+            this.blockState.setBlockData(piston);
+        }
     }
 
     @Override
-    public void update()
+    public List<Block> getParts()
     {
-        super.update(pistonData, true);
+        List<Block> parts = super.getParts();
+        if (head != null)
+            parts.add(head);
+        return parts;
     }
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.nitnelave.CreeperHeal.block.CreeperBlock#remove()
-     */
+
     @Override
-    public void remove()
+    boolean checkForDrop()
     {
-        getBlock().setType(Material.AIR);
-        if (isExtended())
-            getBlock().getRelative(pistonData.getFacing()).setType(Material.AIR);
+        // Only the base is replaced.
+        return checkForDrop(getBlock());
     }
+
 }

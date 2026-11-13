@@ -4,6 +4,10 @@ import com.nitnelave.CreeperHeal.CreeperHeal;
 import com.nitnelave.CreeperHeal.utils.CreeperLog;
 import com.nitnelave.CreeperHeal.utils.FileUtils;
 import org.bukkit.Bukkit;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -14,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -75,12 +80,21 @@ public abstract class CreeperConfig
     private static void loadSound()
     {
         CreeperLog.debug("Loading sound");
-        try
+        // Accepts both the old enum names (ENTITY_ITEM_PICKUP) and the
+        // vanilla ids (entity.item.pickup). Anything else means no sound.
+        sound = null;
+        String name = soundName.getValue().trim().toLowerCase(Locale.ROOT);
+        if (name.startsWith("minecraft:"))
+            name = name.substring("minecraft:".length());
+        Registry<Sound> sounds = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT);
+        for (Sound s : sounds)
         {
-            sound = Sound.valueOf(soundName.getValue());
-        } catch (IllegalArgumentException e)
-        {
-            sound = null;
+            NamespacedKey key = sounds.getKey(s);
+            if (key != null && (key.getKey().equals(name) || key.getKey().replace('.', '_').equals(name)))
+            {
+                sound = s;
+                break;
+            }
         }
     }
 

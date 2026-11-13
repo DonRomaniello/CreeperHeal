@@ -16,6 +16,7 @@
 # 
 # replace-protected-chests-immediately: (default true) If enabled, chests protected by a plugin (LWC,
 # Lockette, WG) will not be destroyed by explosions.
+# (No effect in the Paper port yet: no protection plugin is hooked.)
 #
 # replace-grass-with-dirt: If enabled, exploded grass will come back as dirt blocks.
 #

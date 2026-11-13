@@ -22,6 +22,7 @@
 # factions: To use with the Factions plugin. If the settings are set to true,
 # the explosions in wilderness or territory are ignored by CreeperHeal (blocks
 # are destroyed normally).
+# (No effect in the Paper port yet: Factions is not hooked.)
 #
 
 restrict:

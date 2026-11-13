@@ -1,13 +1,6 @@
 package com.nitnelave.CreeperHeal.utils;
 
-import com.nitnelave.CreeperHeal.CreeperHeal;
-import com.nitnelave.CreeperHeal.block.DelayReplacement;
-import com.nitnelave.CreeperHeal.block.Replaceable;
-import com.nitnelave.CreeperHeal.config.CfgVal;
-import com.nitnelave.CreeperHeal.config.CreeperConfig;
-import com.nitnelave.CreeperHeal.events.CHBlockHealEvent;
 import com.nitnelave.CreeperHeal.events.CHExplosionRecordEvent;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 
 import java.util.Arrays;
@@ -36,8 +29,8 @@ public abstract class CreeperUtils
             return CHExplosionRecordEvent.ExplosionReason.DRAGON;
         case FIREBALL:
             return CHExplosionRecordEvent.ExplosionReason.GHAST;
-        case PRIMED_TNT:
-        case MINECART_TNT:
+        case TNT:
+        case TNT_MINECART:
             return CHExplosionRecordEvent.ExplosionReason.TNT;
         default:
             return CHExplosionRecordEvent.ExplosionReason.OTHER;
@@ -80,21 +73,5 @@ public abstract class CreeperUtils
         Collections.addAll(set, elements);
 
         return Collections.unmodifiableSet(set);
-    }
-
-    /**
-     * Delay the block's replacement until it is possible for it to spawn, or
-     * drop it after a reasonable amount of tries.
-     *
-     * @param block  The block to be replaced later
-     * @param reason How was this block replaced
-     */
-    public static void delayReplacement(Replaceable block, CHBlockHealEvent.CHBlockHealReason reason)
-    {
-        long delay = CreeperConfig.getInt(CfgVal.BLOCK_PER_BLOCK_INTERVAL);
-        DelayReplacement dr = new DelayReplacement(block, 0, reason);
-        int id = Bukkit.getServer().getScheduler()
-                       .scheduleSyncRepeatingTask(CreeperHeal.getInstance(), dr, delay, delay);
-        dr.setId(id);
     }
 }

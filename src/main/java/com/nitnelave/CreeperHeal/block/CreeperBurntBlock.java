@@ -173,12 +173,14 @@ public class CreeperBurntBlock
      */
     public boolean checkReplace()
     {
+        if (timer.isTimed())
+            return true; // Replaced at the configured time of day, see WorldConfig.
         if (timer.checkReplace())
         {
             if (replace(false))
                 replaced = true;
-            else
-                postPone(CreeperConfig.getInt(CfgVal.WAIT_BEFORE_HEAL));
+            else if (!postPone(CreeperConfig.getInt(CfgVal.WAIT_BEFORE_HEAL)))
+                replaced = true; // Second failure: the block was dropped, we are done with it.
             return true;
         }
         return false;

@@ -105,7 +105,7 @@ public class GriefListener implements Listener
         {
             Player attacked = (Player) event.getEntity();
             Player offender = null;
-            String message = attacked.getDisplayName();
+            String message = attacked.getName();
             Entity attacker;
             switch (event.getCause())
             {
@@ -186,7 +186,8 @@ public class GriefListener implements Listener
         if (item.getType().toString().endsWith("_SPAWN_EGG")
             && !CreeperPermissionManager.checkPermissions(player, true, "bypass.spawnEgg"))
         {
-            String entityType = EntityType.fromId(event.getItem().getData().getData()).getName();
+            String type = item.getType().toString();
+            String entityType = type.substring(0, type.length() - "_SPAWN_EGG".length()).toLowerCase();
 
             boolean blocked = world.getBool(WCfgVal.BLOCK_SPAWN_EGGS);
             if (blocked)

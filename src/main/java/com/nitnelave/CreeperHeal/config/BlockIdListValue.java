@@ -1,6 +1,8 @@
 package com.nitnelave.CreeperHeal.config;
 
 import com.nitnelave.CreeperHeal.block.BlockId;
+import com.nitnelave.CreeperHeal.utils.CreeperLog;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.HashSet;
@@ -22,14 +24,14 @@ class BlockIdListValue extends ConfigValue<HashSet<BlockId>>
         String[] split = tmp_str1.split(",");
         for (String elem : split)
         {
-            try
-            {
-                BlockId bId = new BlockId(elem);
-                set.add(bId);
-            } catch (IllegalArgumentException e)
-            {
-                System.err.printf("Invalid material: %s\n", elem);
-            }
+            elem = elem.trim();
+            if (elem.isEmpty() || elem.equals("0"))
+                continue;
+            Material material = Material.matchMaterial(elem);
+            if (material == null)
+                CreeperLog.warning("Invalid material in " + getKey() + ": " + elem);
+            else
+                set.add(new BlockId(material));
         }
         setValue(set);
     }

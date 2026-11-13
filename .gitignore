@@ -16,3 +16,7 @@ javadoc.xml
 *.iml
 *.swp
 out
+
+# Build output
+build/
+.gradle/
